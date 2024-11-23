@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>LFSR</title>
+	<style type="text/css">
+		body {
+			padding: 0;
+			margin: 0;
+			display: flex;
+    		align-items: center;
+    		justify-content: center;
+    		background: linear-gradient(#c3f4ee, #85cce2);
+    		font-family: 'Segoe UI', 'Arial';
+    		height: auto;
+    		background-attachment: fixed;
+    		background-size: cover;
+		}
+		.box, input {
+			height: 45px;
+			width: 45px;
+			margin: 4px;
+			box-shadow: rgba(0, 0, 0, .3) 3px 3px 5px;
+			background: #fff;
+			text-align: center;
+			font-size: 35px;
+			cursor: pointer;
+		}
+		input {
+			font-size: 25px;
+			width: 80px;
+		}
+		.boxu {
+			height: 45px;
+			width: 45px;
+			margin: 4px;
+			text-align: center;
+			font-size: 35px;
+			cursor: pointer;
+		}
+
+		.bin {
+			display: flex;
+			width: 100%;
+			align-items: center;
+    		justify-content: center;
+		}
+		button {
+			border: none;
+			background: #673ab7;
+			color: #fff;
+			font-size: 25px;
+			padding: 5px;
+			margin-bottom: 5px;
+		}
+		table {
+			font-size: 25px;
+			width: 100%;
+			text-align: center;
+		}
+		#clk, #start {
+			width: 100%;
+		}
+		.tap {
+			background: #e91e63;
+		}
+		footer {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-top: 60%;
+		}
+	</style>
+</head>
+<body>
+
+<div>
+	<div class="bin">🌱<div class="boxi"><input type="number" placeholder="seed" id="seed" min="1" max="255"></div>
+	</div>
+
+	
+	
+	<div id="decVal"></div>
+	<div class="bin">
+		<div class="boxu" id="t7">💦</div>
+		<div class="boxu" id="t6">💦</div>
+		<div class="boxu" id="t5">💦</div>
+		<div class="boxu" id="t4">💦</div>
+		<div class="boxu" id="t3">💦</div>
+		<div class="boxu" id="t2">💦</div>
+		<div class="boxu" id="t1">💦</div>
+		<div class="boxu" id="t0">💦</div>
+	</div>
+	<div class="bin">
+		<div class="box" id="b7"></div>
+		<div class="box" id="b6"></div>
+		<div class="box" id="b5"></div>
+		<div class="box" id="b4"></div>
+		<div class="box" id="b3"></div>
+		<div class="box" id="b2"></div>
+		<div class="box" id="b1"></div>
+		<div class="box" id="b0"></div>
+	</div>
+	<button id="start">⚡</button>
+	<button id="clk">🕗</button>
+
+	<table>
+		<thead><td><b>Binary</b></td><td><b>Bit</b></td><td><b>Decimal</b></td></thead>
+		<tbody id="out"></tbody>
+	<table>
+
+		<footer>Made with 🍫n🧀 by YJK</footer>
+
+</div>
+<script>
+class LFSR {
+	constructor(seed, taps, numBits) {
+		this.register = seed.toString(2).padStart(numBits, 0)
+		this.taps = taps
+		this.numBits = numBits
+	}
+	next() {
+		let bit = "0"
+		for (let t of this.taps) {
+			bit ^= this.register[t]
+			bit = bit.toString()
+		}
+		this.register = bit + this.register.substr(0, this.numBits - 1)
+		return {
+			"Register": this.register,
+			bit,
+			"Decimal": Number("0b" + this.register)
+		}
+	}
+}
+
+const $out = document.querySelector('#out')
+const $seed = document.querySelector('#seed')
+const $start = document.querySelector('#start')
+const $clk = document.querySelector('#clk')
+
+const $b = [document.querySelector('#b7'),
+			document.querySelector('#b6'),
+			document.querySelector('#b5'),
+			document.querySelector('#b4'),
+			document.querySelector('#b3'),
+			document.querySelector('#b2'),
+			document.querySelector('#b1'),
+			document.querySelector('#b0')]
+
+const $t = [document.querySelector('#t7'),
+			document.querySelector('#t6'),
+			document.querySelector('#t5'),
+			document.querySelector('#t4'),
+			document.querySelector('#t3'),
+			document.querySelector('#t2'),
+			document.querySelector('#t1'),
+			document.querySelector('#t0')]
+
+let lfsr
+let tap = []
+let tp = new Array(8).fill(false)
+
+$t.forEach((u, i) => u.addEventListener('click', _ => {
+	$b[i].classList.toggle('tap')
+	tp[i] = !tp[i]
+	tap = tp.map((e, i) => e ? i : null).filter(e => e)
+	console.log(tap, tp)
+}))
+
+const printLFSR = register => register.split('').forEach((e, i) => document.querySelector(`#b${7-i}`).innerHTML = e)
+
+$start.addEventListener('click', _ => {
+	lfsr = new LFSR(Number($seed.value), tap, 8)
+	console.log(tap)
+	printLFSR(lfsr.register)
+	$start.remove()
+	$t.forEach(e => e.remove())
+})
+
+$clk.addEventListener('click', _ => {
+	$b.forEach(u => u.removeEventListener('click', null))
+	let state = lfsr.next()
+	console.log(state.Register)
+	$out.innerHTML += `<tr><td>${tp.map((y, i) => `<span class=${y && "tap"}>${state.Register[i]}</span>`).join("")}</td><td>${state.bit}</td><td>${state.Decimal}</td></tr>`
+})
+
+</script>
+</body>
+</html>
